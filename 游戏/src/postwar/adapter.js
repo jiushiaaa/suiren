@@ -152,6 +152,7 @@ var Civilization = {
     if(typeof CivilMunicipal!=='undefined')CivilMunicipal.tick(State);
     if(typeof CivilCulture!=='undefined')CivilCulture.tick(State);
     if(typeof CivilRuins!=='undefined')CivilRuins.tick(State);
+    if(typeof CivilSites!=='undefined')CivilSites.tick(State);
     if(typeof CivilExpedition!=='undefined'){const r=CivilExpedition.tick(State);if(r==='joined')this.notify('地下储藏室的老测量员带着两个徒弟搬来了聚落。他脑子里还记着旧城的道路编号。');if(r==='rested')this.notify('伤员养好了伤，重新回到岗位。');}
     if(typeof CivilServices!=='undefined')CivilServices.tick(State);
     if(typeof CivilPlanning!=='undefined')CivilPlanning.tick(State);
@@ -525,6 +526,7 @@ var Civilization = {
       // journeys that were already under way still finish under the old rule.
       const legacyWalk=typeof CivilExpedition==='undefined'||CivilExpedition.legacyJourney(State);
       if(typeof CivilExpedition!=='undefined')CivilExpedition.refresh();
+      if(typeof CivilSites!=='undefined')CivilSites.refresh();
       if(legacyWalk){
       const station=this.button('stationButton',c.station?'回收交通站':'沿路勘察','#roadPanel',()=>this.depart(c.station?'salvage':'station'),{food:c.station?4:8});station.toggle?.(true);
       station.find('.tooltip .row_val').text(c.station?4:8);

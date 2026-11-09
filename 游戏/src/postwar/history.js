@@ -21,6 +21,7 @@ var CivilHistory={
       if(seen.has(key))return;seen.add(key);
       entries.push({key,category,title,detail,at:this.time(s,at),...extra});
     };
+    if(typeof CivilSites!=='undefined')for(const [i,r]of (c.siteChains?.records||[]).entries())add('sitechain_'+i,'ruins',CivilSites.site(r.site).name,CivilSites.result(r),r.endedAt);
     if(typeof CivilArchives!=='undefined')for(const e of CivilArchives.history(s))add(e.key,e.category,e.title,e.detail,e.at);
     for(const [i,e]of (c.deliberation?.records||[]).entries()){const a=CivilCivic.agenda(s).find(x=>x.id===e.id),o=a?.options.find(x=>x.value===e.value);add('civic_'+i,'governance',a?.title||e.id,(o?.label||String(e.value))+' · '+({passed:'落实',refused:'未获同意',cancelled:'撤回'}[e.result]||e.result)+'。'+(o?.consequence||'')+' '+(e.reason||''),e.endedAt);}
     for(const [i,e]of (c.deliberation?.pressureHistory||[]).entries())add('pressure_'+i,'governance',e.reason,e.diagnosis,e.at);

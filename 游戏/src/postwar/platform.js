@@ -58,6 +58,8 @@
     if(typeof CivilCooperative!=='undefined')CivilCooperative.validate(state);
     if(typeof CivilRuins!=='undefined')CivilRuins.validate(state);
     if(typeof CivilExpedition!=='undefined')CivilExpedition.validate(state);
+    if(typeof CivilSites!=='undefined')CivilSites.validate(state);
+    else if(c.siteChains!==undefined)throw Error('Missing site-chain validator');
     if(typeof CivilCourse!=='undefined')CivilCourse.validate(state);
     if(typeof CivilCensus!=='undefined')CivilCensus.validate(state);
     if(typeof CivilCity!=='undefined')CivilCity.validate(state);

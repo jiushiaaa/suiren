@@ -140,7 +140,7 @@ var CivilNav={
     const c=s.civilization,ids=['outside','urban','regions','municipal'];
     const national=Number.isSafeInteger(c.polity?.foundedAt)||Number.isSafeInteger(c.nation?.foundedAt);
     if(c.city?.institutions?.home?.enabled||c.cityContinuity)ids.push('industry');
-    const away=!!(c.expedition?.party||c.journey);
+    const away=!!(c.expedition?.party||c.journey)||(typeof CivilSites!=='undefined'&&CivilSites.available(s)&&CivilSites.sites.some(a=>CivilSites.unlocked(s,a)&&CivilSites.phase(s,a.id)<4));
     if((Number.isSafeInteger(c.conurbation?.clusterAt)||national)&&!away)ids.push('road');
     return ids;
   },
