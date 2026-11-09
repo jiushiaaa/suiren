@@ -5,7 +5,9 @@ var CivilLanding={
   show(state,onError){
     this.phase='ready';this.state=state;this.onError=onError;
     const button=document.getElementById('civilStartButton');
-    button.textContent=state.civilization&&state.civilization.setup?.confirmed!==false?'继续游戏':'开始游戏';
+    button.textContent=state.civilization&&state.civilization.setup?.confirmed!==false?'继续游戏':'进入游戏';
+    const load=document.getElementById('civilLoadButton');
+    if(load){load.hidden=!(state.civilization&&state.civilization.setup?.confirmed!==false||typeof CivilSlots!=='undefined'&&CivilSlots.rows.some(Boolean));load.onclick=()=>CivilSlots.menu('load');}
     button.disabled=false;button.onclick=()=>this.begin();
     document.getElementById('civilLanding').hidden=false;
     document.body.classList.add('civil-entry');

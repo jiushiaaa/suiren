@@ -126,13 +126,13 @@
     async decodeSave(text){return decode(typeof CivilSaveCodec==='undefined'?text:await CivilSaveCodec.unpack(text));},
     async load() {
       const sdk = root.LumiMakerSdk;
-      if(!sdk) { const state=typeof CivilLocalSaves==='undefined'?{}:await CivilLocalSaves.load();this.loaded=true;this.error=null;return state; }
+      if(!sdk) { let state=typeof CivilLocalSaves==='undefined'?{}:await CivilLocalSaves.load();if(typeof CivilSlots!=='undefined'){await CivilSlots.loadLocal();if(!state.civilization){const latest=CivilSlots.rows.filter(Boolean).sort((a,b)=>b.meta.savedAt.localeCompare(a.meta.savedAt))[0];if(latest)state=await this.decodeSave(latest.text);}}this.loaded=true;this.error=null;return state; }
       this.sdk = sdk;
       if(typeof CivilLocalSaves!=='undefined')CivilLocalSaves.active=null; // choose a local slot explicitly for cloud progress
       const ready = await sdk.ready();
       if(!ready.ready) throw Error(ready.error || '尚未连接存档服务');
       const bytes = await sdk.readSave(); // Only null means no save. A rejection must block startup.
-      const state = bytes === null ? {} : await this.decodeSave(new TextDecoder().decode(bytes));
+      const state = bytes === null ? {} : await (typeof CivilSlots!=='undefined'?CivilSlots.unpack(new TextDecoder().decode(bytes)):this.decodeSave(new TextDecoder().decode(bytes)));
       this.loaded = true; this.error=null; return state;
     },
     serialize() {
@@ -150,7 +150,7 @@
       if(this.transitioning || !this.sdk || !this.loaded || this.busy || !this.dirty || root.State?.civilization?.setup?.confirmed===false || typeof CivilLanding!=='undefined'&&CivilLanding.held()) return;
       this.busy=true; this.dirty=false;
       this.writePromise=(async()=>{
-      try { await this.sdk.writeSave(await this.encode()); this.error=null; }
+      try { await this.sdk.writeSave(typeof CivilSlots==='undefined'?await this.encode():await CivilSlots.pack()); this.error=null; }
       catch(error) { this.dirty=true; this.error=error; this.status('云端暂未保存，将自动重试'); }
       finally {
         this.busy=false; this.writePromise=null;

@@ -266,3 +266,13 @@ body.dark .city-local-terrain .city-ground-trail { color:#888; }
   .civil-plan-row { grid-template-columns:minmax(0,1fr); }
   .civil-plan-row > .button { grid-column:1; grid-row:auto; }
 }
+
+/* Manual saves remain a small monochrome, internally scrolling dialog. */
+#civilLanding { align-content:center; gap:20px; }
+#civilLoadButton[hidden] { display:none; }
+.civil-slots { box-sizing:border-box; width:min(620px,calc(100vw - 32px)); max-height:80dvh; overflow:auto; overscroll-behavior:contain; padding:24px; border:2px solid currentColor; background:var(--civil-paper,#fff); color:var(--civil-ink,#222); }
+.civil-slots::backdrop { background:rgba(0,0,0,.3); }
+.civil-slots h2 { font-size:1.25em; margin:0 0 24px; }
+.civil-slots button { display:block; box-sizing:border-box; width:100%; margin:12px 0; padding:12px; font:inherit; color:inherit; background:transparent; border:1px solid currentColor; cursor:pointer; }
+.civil-slots button:disabled { opacity:.45; cursor:default; }
+body.dark .civil-slots { background:#252720; color:#ddd; }

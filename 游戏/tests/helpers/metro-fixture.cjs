@@ -14,7 +14,7 @@ function harness(saved){
   ctx=vm.createContext({State:s,_:x=>x,TextEncoder,TextDecoder,setTimeout:fn=>{fn();return 0;},clearTimeout(){},Math:Object.assign(Object.create(Math),{random:()=>.9}),
     Room:{buttons:{}},Outside:{updateVillage(){},updateWorkersView(){},killVillagers(n){s.game.population-=n;}},Events:native,
     $SM:{get:(key,zero)=>get(key)??(zero?0:undefined),set,add:(key,n)=>set(key,(get(key)||0)+n),fireUpdate(){}},AudioEngine:{},Engine:{saveGame(){}},Notifications:{notify:(_who,text)=>messages.push(text),printMessage:text=>messages.push(text)}});
-  const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+  const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
   for(const file of files)vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
   ctx.Civilization.refresh=()=>{};ctx.Civilization.updateIncome=()=>{};ctx.Civilization.renderSpeed=()=>{};ctx.Outside.updateWorkersView=()=>{};ctx.Civilization.initState();
   if(ctx.CivilMetro)ctx.CivilMetro.init(s);

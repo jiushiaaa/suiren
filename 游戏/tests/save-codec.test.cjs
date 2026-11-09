@@ -43,7 +43,7 @@ test('small saves and browsers without a compressor retain readable version-one 
 test('cloud persistence writes a complete compressed snapshot and corrupted reads never enable saving',async()=>{
  const h=game(),p=h.ctx.CivilPlatform;let resolve,writes=0,stored;
  p.sdk={writeSave:async text=>{writes++;stored=text;await new Promise(r=>resolve=r);}};p.loaded=true;p.dirty=true;p.status=()=>{};
- const flushing=p.flush();while(!stored)await new Promise(r=>setTimeout(r,5));const snapshot=await p.decodeSave(stored);assert.deepEqual(clone(snapshot),clone(h.s));
+ const flushing=p.flush();while(!stored)await new Promise(r=>setTimeout(r,5));const snapshot=await h.ctx.CivilSlots.unpack(stored);assert.deepEqual(clone(snapshot),clone(h.s));
  p.changed();await p.flush();assert.equal(writes,1);resolve();await flushing;clearTimeout(p.timer);p.timer=null;
  h.ctx.LumiMakerSdk={ready:async()=>({ready:true}),readSave:async()=>new TextEncoder().encode('{broken'),writeSave:async()=>{throw Error('must not write');}};
  p.loaded=false;await assert.rejects(p.load());assert.equal(p.loaded,false);

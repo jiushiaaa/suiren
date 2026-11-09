@@ -26,6 +26,7 @@ var CivilPreferences = {
   toggleTheme(){this.prefs.dark=!this.prefs.dark;this.apply();return this.save();},
   menu(){
     const menu=$('.menu').first();
+    for(const [id,label,mode] of [['saveMenu','存档','save'],['loadMenu','读档','load']])$('<button>').attr({id,type:'button'}).addClass('menuBtn').text(label).on('click',()=>CivilSlots.menu(mode)).appendTo(menu);
     $('<button>').attr({id:'restartMenu',type:'button'}).addClass('menuBtn').text('重开').on('click',()=>this.restartMenu()).appendTo(menu);
     $('<button>').attr({id:'themeMenu',type:'button'}).addClass('menuBtn').on('click',()=>this.toggleTheme()).appendTo(menu);
     this.apply();
