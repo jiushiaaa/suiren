@@ -1,6 +1,6 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.join(__dirname,'..'),clone=x=>JSON.parse(JSON.stringify(x)),near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
-const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(x=>x[1]).filter(x=>x.startsWith('content/')||x.startsWith('src/postwar/'));
+const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(x=>x[1].split('?')[0]).filter(x=>x.startsWith('content/')||x.startsWith('src/postwar/'));
 const {emptyIncidents}=require('./helpers/incidents-migration.cjs');
 function emptyMetro(at){return {schema:1,introducedAt:at,agreementId:null,members:[],samples:[],lastObservedAt:null,stableSince:null,stableSeconds:0,formedAt:null,formedAgreementId:null,formedMembers:[],formedStableSince:null,offered:false};}
 function harness(saved,initialize=true){

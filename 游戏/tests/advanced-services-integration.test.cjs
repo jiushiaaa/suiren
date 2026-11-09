@@ -10,7 +10,7 @@ const near=(actual,expected,label='quantity')=>assert.ok(Math.abs(actual-expecte
 // Full, shipped content/runtime, in the entry point's order. Only native presentation
 // objects are inert: no production, service, population, construction or power stub.
 const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)]
-  .map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+  .map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
 function harness(saved){
   const s=saved?clone(saved):JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/natural-first-city.json'),'utf8')).state;
   const messages=[],ctx=vm.createContext({State:s,_:x=>x,TextEncoder,TextDecoder,setTimeout,clearTimeout,

@@ -7,7 +7,7 @@ const {emptyIncidents}=require('./helpers/incidents-migration.cjs');
 const root=path.join(__dirname,'..'),clone=x=>JSON.parse(JSON.stringify(x));
 const near=(a,b,label='quantity')=>assert.ok(Math.abs(a-b)<1e-6,`${label}: ${a} != ${b}`);
 const exact=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/natural-two-towns.json'),'utf8')).state;
-const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
 
 function emptyMetro(at){return {schema:1,introducedAt:at,agreementId:null,members:[],samples:[],lastObservedAt:null,stableSince:null,stableSeconds:0,formedAt:null,formedAgreementId:null,formedMembers:[],formedStableSince:null,offered:false};}
 

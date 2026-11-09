@@ -8,7 +8,7 @@ function harness(saved,finance=true){
   const ctx=vm.createContext({State:s,_:x=>x,TextEncoder,TextDecoder,setTimeout,clearTimeout,
     Room:{buttons:{}},Outside:{updateVillage(){},updateWorkersView(){}},Events:{activeEvent:()=>null},
     $SM:{fireUpdate(){}},AudioEngine:{},Engine:{saveGame(){}},Notifications:{notify(){},printMessage(){}}});
-  let files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+  let files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
   if(finance){
     if(!files.includes('content/finance.js'))files.splice(files.findIndex(f=>f.startsWith('src/')),0,'content/finance.js');
     if(!files.includes('src/postwar/finance.js'))files.push('src/postwar/finance.js');

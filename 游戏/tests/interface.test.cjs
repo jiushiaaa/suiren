@@ -5,7 +5,7 @@ const root=path.join(__dirname,'..');
 function harness(){
   const s=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/natural-passenger-construction.json'),'utf8')).state;
   const ctx=vm.createContext({State:s,_:x=>x});
-  const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+  const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
   for(const f of files.filter(f=>!['src/postwar/adapter.js','src/postwar/hearth.js','src/postwar/history.js'].includes(f)))vm.runInContext(fs.readFileSync(path.join(root,f),'utf8'),ctx,{filename:f});
   return {s,ui:ctx.CivilInterface,ctx};
 }

@@ -13,7 +13,7 @@ function harness(){
   const ctx=vm.createContext({State:s,_:x=>x,TextEncoder,TextDecoder,setTimeout,clearTimeout,
     Room:{buttons:{}},Outside:{updateVillage(){},updateWorkersView(){}},Events:{activeEvent:()=>null},
     $SM:{fireUpdate(){}},AudioEngine:{},Engine:{saveGame(){}},Notifications:{notify(){},printMessage(){}}});
-  const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+  const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
   for(const file of ['content/finance.js','src/postwar/finance.js'])if(!files.includes(file))files.push(file);
   for(const file of files)vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
   ctx.Civilization.refresh=()=>{};ctx.Civilization.updateIncome=()=>{};ctx.Civilization.initState();ctx.CivilFinance.init(s);

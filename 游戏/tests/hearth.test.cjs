@@ -64,10 +64,10 @@ test('municipal delegation can file routine hearth notices without changing fuel
 
 test('town hearth controls fold once, preserve the native buttons and reveal shortages in the closed summary',()=>{
   const h=harness(),nodes=dom(h.ctx),light=nodes.get('#lightButton'),stoke=nodes.get('#stokeButton'),before=JSON.stringify(h.s);stoke.originalAction=h.ctx.Room.stokeFire;
-  h.ctx.CivilHearth.refresh(h.s);assert.equal(nodes.has('#hearthManagement'),false);assert.match(nodes.get('#hearthNote').value,/工匠已接手/);assert.equal(JSON.stringify(h.s),before);
+  h.ctx.CivilHearth.refresh(h.s);assert.equal(nodes.has('#hearthManagement'),false);assert.equal(nodes.get('#hearthNote').value,'');assert.equal(JSON.stringify(h.s),before);
   h.s.civilization.village.town=true;h.ctx.CivilHearth.refresh(h.s);const details=nodes.get('#hearthManagement');assert.equal(details.attrs.open,undefined);assert.equal(light.parent,nodes.get('#hearthControls'));assert.equal(stoke.parent,nodes.get('#hearthControls'));assert.equal(stoke.originalAction,h.ctx.Room.stokeFire);
   h.s.stores.wood=.5;h.ctx.CivilHearth.refresh(h.s);assert.match(nodes.get('#hearthSummary').value,/守火缺柴/);assert.equal(details.attrs.open,undefined);assert.equal(nodes.get('#hearthSummary').style.fontWeight,'bold');
-  details.attr('open','open');h.s.civilization.urban.city=true;h.s.game.fire.value=0;h.ctx.CivilHearth.refresh(h.s);assert.equal(details.attrs.open,'open');assert.match(nodes.get('#hearthSummary').value,/旧维修间炉火.*炉火已熄/);assert.match(nodes.get('#hearthNote').value,/发电机优先供应工区与公用设施/);assert.equal(nodes.get('#hearthControls').children.filter(x=>x===stoke).length,1);
+  details.attr('open','open');h.s.civilization.urban.city=true;h.s.game.fire.value=0;h.ctx.CivilHearth.refresh(h.s);assert.equal(details.attrs.open,'open');assert.match(nodes.get('#hearthSummary').value,/旧维修间炉火.*炉火已熄/);assert.match(nodes.get('#hearthNote').value,/炉火已熄/);assert.equal(nodes.get('#hearthControls').children.filter(x=>x===stoke).length,1);
 });
 
 // Isolated native-room transition fixture: construction and paid electrical

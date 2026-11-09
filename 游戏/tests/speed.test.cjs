@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const {emptyIncidents}=require('./helpers/incidents-migration.cjs');
 const root=path.join(__dirname,'..'),copy=x=>JSON.parse(JSON.stringify(x));
-const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(x=>x[1]).filter(x=>x.startsWith('content/')||x.startsWith('src/postwar/'));
+const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(x=>x[1].split('?')[0]).filter(x=>x.startsWith('content/')||x.startsWith('src/postwar/'));
 function emptyMetro(at){return {schema:1,introducedAt:at,agreementId:null,members:[],samples:[],lastObservedAt:null,stableSince:null,stableSeconds:0,formedAt:null,formedAgreementId:null,formedMembers:[],formedStableSince:null,offered:false};}
 function harness(){
   const s=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/natural-passenger-construction.json'),'utf8')).state,notes=[],elements=new Map();let active=null,saves=0;

@@ -7,7 +7,7 @@ const root=path.join(__dirname,'..'),ids=['river_network','old_city_fringe','mou
 const clone=x=>JSON.parse(JSON.stringify(x));
 const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-7,`${a} != ${b}`);
 const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)]
-  .map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+  .map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
 
 // Every population, economy, admission, transport and validator is the shipped module.
 // Native display objects alone are inert. The driver follows the adapter's production

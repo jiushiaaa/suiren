@@ -8,9 +8,9 @@ function harness() {
  const Outside={getMaxPopulation:()=>state.game.buildings.hut*4,setTitle(){},updateVillage(){},updateWorkersView(){},killVillagers(n){state.game.population-=n;}};
  const Events={startEvent(e){active=e;},activeEvent:()=>active,buttonClick(){}};
  const ctx=vm.createContext({State:state,Room,Outside,Events,$SM:SM,AudioEngine:{},Notifications:{},CivilClock:{rate:1},CivilPlatform:{},Engine:{saveGame(){}},Math:Object.assign(Object.create(Math),{random:()=>.9}),_:s=>s,setTimeout,clearTimeout,console});
- for(const file of ['src/postwar/rules.js','content/zh.js','content/development.js','content/industry.js','content/regions.js','content/urban.js','content/origins.js','content/municipal.js','content/advanced.js','content/services.js','src/postwar/population.js','src/postwar/society.js','src/postwar/industry.js','src/postwar/village.js','src/postwar/regions.js','src/postwar/urban.js','src/postwar/origins.js','src/postwar/municipal.js','src/postwar/advanced.js','src/postwar/services.js','src/postwar/adapter.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx,{filename:file});
+ for(const file of ['src/postwar/rules.js','content/zh.js','content/development.js','content/industry.js','content/regions.js','content/urban.js','content/origins.js','content/municipal.js','content/advanced.js','content/services.js','src/postwar/population.js','src/postwar/society.js','src/postwar/industry.js','src/postwar/village.js','src/postwar/regions.js','src/postwar/urban.js','src/postwar/origins.js','src/postwar/municipal.js','src/postwar/advanced.js','src/postwar/services.js','src/postwar/encounters.js','src/postwar/adapter.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx,{filename:file});
  ctx.Outside.updateWorkersView=()=>{};ctx.Civilization.initState();ctx.Civilization.notify=t=>observed.push(t);ctx.Civilization.refresh=()=>{};ctx.Civilization.renderSpeed=()=>{};ctx.Civilization.updateIncome=()=>{};
- function step(n){for(let i=0;i<n;i++)ctx.Civilization.tick();}
+ function step(n){for(let i=0;i<n;i++){ctx.Civilization.tick();if(state.civilization.pending?.startsWith('encounter_'))choose('decline');}}
  function choose(key){const b=active.scenes.start.buttons[key];assert.ok(b,'choice exists: '+key);b.onChoose?.();active=null;}
  return {ctx,state,step,choose,observed,get active(){return active;}};
 }
@@ -36,7 +36,7 @@ test('ongoing research and journey cannot be double-started or charged twice',()
  h.ctx.Civilization.depart('station');const food=h.state.stores.food;h.ctx.Civilization.depart('station');assert.equal(h.state.stores.food,food);
 });
 test('no-resident event wait stays serializable, and policy switching cannot repeatedly farm trust',()=>{
- const h=harness();h.state.game.population=0;h.state.game.workers={};h.state.civilization.randomClock=0;h.step(10);assert.equal(h.state.civilization.randomClock,0);
+ const h=harness();h.state.game.population=0;h.state.game.workers={};h.state.civilization.randomClock=0;h.step(10);assert.ok(h.state.civilization.randomClock>0);
  h.ctx.Civilization.policyEvent();h.choose('policy_equal');const trust=h.state.civilization.trust;
  h.ctx.Civilization.policyEvent();h.choose('policy_equal');assert.equal(h.state.civilization.trust,trust);
 });

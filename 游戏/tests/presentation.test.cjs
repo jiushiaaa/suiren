@@ -53,12 +53,12 @@ function viewHarness(){
   const $=selector=>selector instanceof Element?selector:selector.startsWith('<')?new Element():elements.get(selector)||new Element(0);
   for(const id of ['roomPanel','roadPanel','stores','main'])elements.set('#'+id,new Element());
   const ctx=vm.createContext({State:s,_:x=>x,$,TextEncoder,TextDecoder,performance:{now:()=>now},setTimeout,clearTimeout,
-    document:{createTextNode:text=>({nodeType:3,textContent:text})},
+    document:{addEventListener(){},createTextNode:text=>({nodeType:3,textContent:text})},
     Button:{Button:function(o){const b=new Element().attr('id',o.id);b.handlers.click=o.click;return b;},setDisabled(){}},
     Room:{buttons:{}},Outside:{updateVillage(){},updateWorkersView(){}},Events:{activeEvent:()=>null},AudioEngine:{},
     Engine:{saveGame(){},init(){calls.init++;}},Notifications:{notify(){},printMessage(){}},
     $SM:{get:(key,zero)=>key.split('.').reduce((v,k)=>v?.[k],s)??(zero?0:undefined),fireUpdate(){}}});
-  const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+  const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
   for(const file of files)vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
   for(const name of ['CivilVillage','CivilSociety','CivilIndustry','CivilRegions','CivilUrban','CivilOrigins','CivilMunicipal','CivilAdvanced','CivilServices','CivilHearth','CivilFinance','CivilMetro','CivilHistory','CivilReadable','CivilModern','CivilEquipment','CivilCivic','CivilArchives'])ctx[name].refresh=()=>{};
   ctx.CivilInterface.refresh=(_s,options)=>{assert.equal(options.summaries,false);calls.renders++;};

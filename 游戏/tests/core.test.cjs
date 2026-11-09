@@ -18,7 +18,7 @@ function successionHarness(){
  const ctx=vm.createContext({State:s,_:x=>x,TextEncoder,TextDecoder,setTimeout:fn=>{fn();return 0;},clearTimeout(){},Math:Object.assign(Object.create(Math),{random:()=>.9}),
    Room:{buttons:{}},Outside:{updateVillage(){},updateWorkersView(){},killVillagers(n){s.game.population-=n;}},Events:events,AudioEngine:{},Engine:{saveGame(){}},Notifications:{printMessage:x=>notes.push(x)},
    $SM:{get:p=>p.split('.').reduce((v,k)=>v?.[k],s),fireUpdate(){}}});
- const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
+ const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));
  for(const file of files)vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),ctx,{filename:file});
  ctx.Civilization.initState();ctx.Civilization.refresh=()=>{};ctx.Civilization.updateIncome=()=>{};ctx.Outside.updateWorkersView=()=>{};
  return {s,ctx,notes,step(n){for(let i=0;i<n;i++)ctx.Civilization.tick();},click(key){ctx.Events.buttonClick({attr:()=>key});},get active(){return active;},get redraws(){return redraws;},get closed(){return closed;},get nativeClicks(){return nativeClicks;}};
