@@ -38,7 +38,7 @@ var CivilSlots={
    return true;
   }finally{this.busy=false;}
  },
- label(i,row){if(!row)return '存档 '+(i+1)+'　空';const m=row.meta;return '存档 '+(i+1)+'　重建 '+m.year+' 年　'+({commons:'公共路线',industry:'工业路线'}[m.route]||'前期')+'　'+new Date(m.savedAt).toLocaleString();},
+ label(i,row,mode){if(!row)return mode==='load'?'空存档':'存档 '+(i+1)+'　空';const m=row.meta;if(mode==='load')return '重建 '+m.year+' 年　'+new Date(m.savedAt).toLocaleString();return '存档 '+(i+1)+'　重建 '+m.year+' 年　'+({commons:'公共路线',industry:'工业路线'}[m.route]||'前期')+'　'+new Date(m.savedAt).toLocaleString();},
  menu(mode){
   if(this.dialog||typeof Events!=='undefined'&&Events.activeEvent())return;
   const focus=document.activeElement,paused=typeof CivilClock!=='undefined'?CivilClock.paused:false;
@@ -49,7 +49,7 @@ var CivilSlots={
   const message=document.createElement('p');message.setAttribute('role','status');
   const close=()=>{if(this.busy)return;dialog.close();dialog.remove();this.dialog=null;if(typeof CivilClock!=='undefined')CivilClock.paused=paused;focus?.focus();};
   const button=(label,fn,parent=body)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=fn;parent.append(b);return b;};
-  const render=()=>{body.replaceChildren();message.textContent='';this.rows.forEach((row,i)=>{const b=button(this.label(i,row),()=>confirm(i));b.disabled=mode==='load'&&!row;});body.append(message);button('返回',close);};
+  const render=()=>{body.replaceChildren();message.textContent='';this.rows.forEach((row,i)=>{const b=button(this.label(i,row,mode),()=>confirm(i));b.disabled=mode==='load'&&!row;});body.append(message);button('返回',close);};
   const confirm=i=>{
    if(mode==='save'&&!this.rows[i]){run(i);return;}
    body.replaceChildren();const p=document.createElement('p');p.textContent=mode==='save'?'覆盖这个存档？':'读取这个存档？当前进度将被替换。';body.append(p,message);

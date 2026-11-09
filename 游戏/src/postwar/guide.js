@@ -103,7 +103,12 @@ var CivilGuide={
     const tab=document.getElementById('location_'+task.where);if(tab&&!tab.classList.contains('selected'))tab.click();
     const target=document.getElementById(v?.target||task.target||'');if(target){for(let p=target;p;p=p.parentElement)if(p.tagName==='DETAILS')p.open=true;if(!target.hasAttribute('tabindex'))target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}
   },
-  text(s){const g=this.steps(s);if(!g)return null;return '下一步：'+g.goal+(g.need.length?' · 还差 '+g.need.slice(0,3).join('、')+(g.need.length>3?' 等 '+g.need.length+' 项':''):'')+(g.note?' · '+g.note:'');},
+  text(s){const g=this.steps(s);return g?'当前目标：'+g.goal:null;},
+  completed(s){const c=s.civilization,b=s.game.buildings;return [
+    [!!b.hut,'建一间木屋'],[!!c.settled,'稳定聚落'],[!!b.workshop,'收拾工坊'],
+    [!!c.station,'找到旧交通站'],[!!c.pump,'修复泵站'],[!!b.outpost,'设立补给外站'],
+    [!!c.village?.riverKnown,'寻找河谷'],[!!c.village?.town,'成为小镇']
+  ].filter(([ok])=>ok).map(([,label])=>label);},
   refresh(s){
     if(typeof document==='undefined'||typeof document.getElementById!=='function'||!document.getElementById('roomPanel'))return;
     let el=document.getElementById('civilGuide');const text=this.text(s);
@@ -113,7 +118,13 @@ var CivilGuide={
     if(!el){el=document.createElement('div');el.id='civilGuide';el.className='civil-brief civil-guide';const line=document.createElement('p');line.setAttribute('role','status');el.appendChild(line);const actions=document.createElement('div');actions.id='civilGuideActions';el.appendChild(actions);}
     if(el.parentNode!==host){if(host.id==='roomPanel')host.appendChild(el);else host.prepend(el);}el.style.display='';
     if(el.firstChild.textContent!==text)el.firstChild.textContent=text;
-    const task=this.steps(s);CivilCityView.button('civilGuideGo','查看办理入口','#civilGuideActions',null,()=>{this.open(State);return false;}).toggle(!!task.where);
+    document.getElementById('civilGuideGo')?.remove();
+    let history=el.querySelector('.civil-guide-done');
+    if(!history){history=document.createElement('details');history.className='civil-guide-done';el.append(history);}
+    const done=this.completed(s),stamp=done.join('|');
+    if(history.dataset.steps!==stamp){history.dataset.steps=stamp;history.replaceChildren();const summary=document.createElement('summary');summary.textContent='已完成（'+done.length+'）';history.append(summary);for(const label of done){const line=document.createElement('p'),strike=document.createElement('s');strike.textContent=label;line.append(strike);history.append(line);}}
+    history.hidden=!done.length;
+
     const home=s.civilization.city?.institutions?.home;
     CivilCityView.button('civilGuideDelegate','交接原镇日常','#civilGuideActions',null,()=>{this.open(State,{where:'city',visit:{city:'home',view:'production',target:'cityHomeDelegation'}});return false;}).toggle(!!home&&!home.enabled&&!CivilCityContinuity.data(s));
   }

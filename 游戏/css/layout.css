@@ -276,3 +276,12 @@ body.dark .city-local-terrain .city-ground-trail { color:#888; }
 .civil-slots button { display:block; box-sizing:border-box; width:100%; margin:12px 0; padding:12px; font:inherit; color:inherit; background:transparent; border:1px solid currentColor; cursor:pointer; }
 .civil-slots button:disabled { opacity:.45; cursor:default; }
 body.dark .civil-slots { background:#252720; color:#ddd; }
+
+/* Costs stay with their buttons, including unaffordable buildings and keyboard/touch focus. */
+#buildBtns .button:hover > .tooltip, #buildBtns .button:focus > .tooltip,
+#craftBtns .button:hover > .tooltip, #craftBtns .button:focus > .tooltip { display:block; }
+#buildBtns .tooltip, #craftBtns .tooltip { min-width:150px; width:max-content; max-width:calc(100vw - 48px); }
+.civil-guide-done { margin-top:12px; }
+.civil-guide-done p { margin:6px 0; }
+#buildBtns .tooltip, #craftBtns .tooltip { color:#222; }
+body.dark #buildBtns .tooltip, body.dark #craftBtns .tooltip { color:#ddd; }

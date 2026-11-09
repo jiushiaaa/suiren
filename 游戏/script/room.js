@@ -1161,7 +1161,7 @@ var Room = {
 				var cost = craftable.cost();
 				for (var c in cost) {
 					$("<div>").addClass('row_key').text(_(c)).appendTo(costTooltip);
-					$("<div>").addClass('row_val').text(cost[c]).appendTo(costTooltip);
+					$("<div>").addClass('row_val').text(cost[c]+(Math.max(0,cost[c]-($SM.get('stores.'+c,true)||0))>0?'（还差 '+Math.ceil(cost[c]-($SM.get('stores.'+c,true)||0))+'）':'')).appendTo(costTooltip);
 				}
 				if (max && !craftable.button.hasClass('disabled')) {
 					Notifications.notify(Room, craftable.maxMsg);

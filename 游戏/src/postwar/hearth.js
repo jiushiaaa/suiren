@@ -30,8 +30,8 @@ var CivilHearth={
       $('#lightButton').appendTo(body);$('#stokeButton').appendTo(body);note.appendTo(body);
     }
     if(details.length)$('#hearthSummary').text(view.title+' · '+(view.warning||(view.retired?'供热站已接管':view.watched?'工匠照看':'等待照看'))).attr('title',view.warning||'展开查看炉温与备用添火').css('fontWeight',view.warning?'bold':'normal');
-    const conditions=view.retired?'':'火势：'+['熄灭','余烬','微火','燃烧','旺火'][view.fire]+'；室温：'+['冰冷','寒冷','适宜','温暖','炎热'][view.temperature]+'。';
-    note.text((view.warning?view.warning+'。':'')+conditions+view.note).toggle(view.watched||view.town);
+    note.text(view.warning||'').toggle(!!view.warning);
+    $('#stokeButton').attr('aria-label','添火');
     if(view.retired){this.stopLegacy();Room.setTitle();$('#stokeButton').hide();$('#lightButton').show().css('width','160px').contents().filter(function(){return this.nodeType===3;}).first().replaceWith(document.createTextNode('开启应急工作间'));$('#lightButton').attr('title','耗5木料，维持120秒，限20人以内；不覆盖全城或批次迁居。');Button.setDisabled($('#lightButton'),CivilHeating.workshopReady(s)||(s.stores.wood||0)<5);return;}
     $('#stokeButton').attr('title','手动添火耗1木料，提升一级火势，并重置5分钟冷却。');
     $('#lightButton').attr('title',s.stores.wood===undefined?'点燃维修间的炉火。':'重新生火需5木料。');

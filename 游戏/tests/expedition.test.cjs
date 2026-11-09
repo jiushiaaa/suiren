@@ -137,6 +137,6 @@ test('the next-step guide reads real conditions and names the town-charter block
  state.game.buildings.workshop=1;assert.match(h.ctx.CivilGuide.text(state),/交通站/);
  c.station=true;c.pump=true;Object.assign(state.game.buildings,{outpost:1,road:1,clinic:1,schoolhouse:1});c.village.riverKnown=true;c.village.riverAllied=true;
  state.game.population=30;c.village.health=90;c.village.convoys=5;c.village.routeStatus='待发：工具 1、药品 0.5、木料 1、食物 1';state.stores.tools=20;
- assert.match(h.ctx.CivilGuide.text(state),/车队：待发/);
+ assert.match(h.ctx.CivilGuide.steps(state).need.join(' '),/车队：待发/);assert.doesNotMatch(h.ctx.CivilGuide.text(state),/车队：待发/);
  const before=JSON.stringify(state);h.ctx.CivilGuide.text(state);assert.equal(JSON.stringify(state),before,'guide is read-only');
 });
