@@ -159,6 +159,10 @@ var CivilExpedition={
     }
     return 'moved';
   },
+  addRest(s,count,until){
+    const d=this.data(s),old=d.resting?.until>s.civilization.elapsed?d.resting:null;
+    d.resting={count:count+(old?.count||0),until:Math.max(until,old?.until||0)};
+  },
   arrive(s){
     const d=this.data(s),p=d.party,C=this.C(),brought={};
     for(const [k,n] of Object.entries(p.pack)){
@@ -166,7 +170,7 @@ var CivilExpedition={
       if(CivilCatalog.resources.includes(k)){s.stores[k]=(s.stores[k]||0)+n;brought[k]=n;}
     }
     if(p.pack.archive){d.sites.ruin.state='preserved';this.record(s,'ruin','旧气象站档案入库','风速纸带与撤离前的值班日志被逐页晾干、编上号，收进了工坊。');}
-    if(p.hurt>0)d.resting={count:p.hurt,until:s.civilization.elapsed+C.injuryRest};
+    if(p.hurt>0)this.addRest(s,p.hurt,s.civilization.elapsed+C.injuryRest);
     const text=Object.entries(brought).map(([k,n])=>(CivilText.labels[k]||k)+' '+Math.round(n*100)/100).join('、');
     this.record(s,'trip','第'+d.trips+'次近郊往返',p.members+'人出发，走了'+p.steps+'步。'+(text?'带回 '+text+'。':'两手空空地回来了。')+(p.hurt?p.hurt+'人负伤，需卧床休养。':''));
     d.party=null;
@@ -176,7 +180,7 @@ var CivilExpedition={
     const d=this.data(s),p=d.party,C=this.C(),c=s.civilization,paid=CivilRules.pay(s,C.rescue);
     if((typeof CivilEquipment!=='undefined'&&CivilEquipment.enabled(s)))s.civilization.fieldEquipment.ammoSpent+=p.pack.ammunition||0;
     if(p.pack.archive&&d.sites.ruin.state==='carried')d.sites.ruin.state='new';
-    d.resting={count:p.members,until:c.elapsed+(paid?C.injuryRest:C.injuryRest*2)};
+    this.addRest(s,p.members,c.elapsed+(paid?C.injuryRest:C.injuryRest*2));
     this.record(s,'rescue','近郊救援',p.members+'人在离家'+p.steps+'步外断了补给。'+(paid?'聚落凑出食物 '+C.rescue.food+'、木料 '+C.rescue.wood+' 前去接应，':'聚落匀不出救援物资，他们只能自己一步步挪回来，')+'背囊里的东西全丢在了荒野上。');
     d.party=null;return paid;
   },

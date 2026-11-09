@@ -1,6 +1,13 @@
 /* MPL-2.0 — Small, finite encounters; optional state, no population transfers. */
 var CivilEncounters={
   pool:[
+    ['leak','solo','屋顶漏水','融雪正滴进柴堆。花四份废料补住漏缝；也可以先撤到干处，最多损失六份木料。','补住漏缝',{scrap:4},{},{loss:{wood:6}}],
+    ['beast','village','粮棚外的爪痕','变异兽钻进了粮棚。花六份木料堵住入口，或撤离并放弃最多八份食物。若强行抢粮，有一半概率一人受伤，需休养120秒。','堵住入口',{wood:6},{},{loss:{food:8},injury:.5}],
+    ['collapse','town','摇晃的货架','旧库房的横梁正在开裂。花十二份木料和两份工具加固，或撤离并放弃最多二十份木料。强行抢救有四分之一概率一人遇难，另有一半概率一人受伤、休养120秒。','加固横梁',{wood:12,tools:2},{},{loss:{wood:20},death:.25,injury:.5}],
+    ['fire','city','仓库里的火星','原镇公仓冒起了烟。花十二份木料和四份工具设置隔火带，或疏散人员，最多损失四十份食物与二十份木料。','设置隔火带',{wood:12,tools:4},{},{loss:{food:40,wood:20}}],
+    ['rain','metro','漏雨的中转棚','原镇公仓旁的中转棚漏雨，尚未装车的储备正在受潮。花四份工具修棚，或撤走人员，最多损失六十份食物和十份废料；在途货物不受影响。','修好棚顶',{tools:4},{},{loss:{food:60,scrap:10}}],
+    ['flood','nation','涨水的旧仓','洪水涌向原镇公仓。花三十份木料和八份工具筑起挡水板，或先疏散人员，最多损失一百二十份食物和四份药品。','筑起挡水板',{wood:30,tools:8},{},{loss:{food:120,medicine:4}}],
+    ['short','space','备件库短路','原镇备件库出现焦味。花四份机械零件和四份工具更换隔离装置，或立即撤离并切断损坏区域，最多损失八份机械零件和三份电子元件。首航组件与在途乘员不受影响。','更换隔离装置',{parts:4,tools:4},{},{loss:{parts:8,electronics:3}}],
     ['hatch','solo','门缝里的铁片','舱门夹着一只破旧工具匣。用两份木料撑住门，可以取出四份废料。','撬开工具匣',{wood:2},{scrap:4}],
     ['branches','solo','雪后的断枝','屋后落着一捆干枝。拆掉一份废料做的铁钩，可以把六份木料拖回屋里。','做钩拖回',{scrap:1},{wood:6}],
     ['echo','solo','远处的敲击','风停时，冻土深处传来三声敲击。等你贴近舱门，它又沉寂了。'],
@@ -45,12 +52,13 @@ var CivilEncounters={
       else c.pending='cold';
       return true;
     }
-    if(e[4]){d.offered=e[0];c.pending='encounter_'+e[0];}
+    if(e[4]){d.risk=e[7]?.injury?this.random(d):null;d.offered=e[0];c.pending='encounter_'+e[0];}
     else if(d.last!==e[0]){Civilization.notify(e[3]);d.last=e[0];}
     else d.last=null;
     return true;
   },
   choose(s,id,accept){const c=s.civilization,d=c.encounters,e=this.pool.find(e=>e[0]===id);
+    if(e?.[7])return this.hazardChoose(s,id,accept?'protect':'withdraw');
     if(!d||!e?.[4]||d.offered!==id||c.pending!=='encounter_'+id||d.records.some(r=>r.id===id))return false;
     if(accept){if(Object.entries(e[5]).some(([k,n])=>(s.stores[k]||0)<n))return false;
       for(const [k,n] of Object.entries(e[5]))s.stores[k]-=n;
@@ -59,14 +67,56 @@ var CivilEncounters={
     d.records.push({id,at:c.elapsed,accepted:accept});d.offered=null;return true;
   },
   event(id,done){if(!id.startsWith('encounter_'))return null;const e=this.pool.find(e=>'encounter_'+e[0]===id);if(!e?.[4])return null;
+    if(e[7])return this.hazardEvent(e,done);
     return {title:e[2],text:[e[3]],buttons:{accept:{text:e[4],nextScene:'end',onChoose:done('事情办妥了，收支已经记下。',()=>{
       const ok=this.choose(State,e[0],true);if(!ok)Civilization.notify('物资不足，可以稍后再决定，或放弃这次机会。');return ok;
     })},decline:{text:'这次作罢',nextScene:'end',onChoose:done('这次机会留在了身后。',()=>this.choose(State,e[0],false))}}};
   },
+  canRisk(s){const x=s.civilization.society,p=s.civilization.expedition;
+    return !!x&&!p?.party&&!(p?.resting?.until>s.civilization.elapsed)&&s.game.population>=8&&
+      CivilSociety.workforce(s)===CivilPopulation.workforce(x.cohorts)&&CivilSociety.workforce(s)>=2;
+  },
+  hazardChoose(s,id,option){const c=s.civilization,d=c.encounters,e=this.pool.find(e=>e[0]===id),cfg=e?.[7];
+    if(!cfg||!d||d.offered!==id||c.pending!=='encounter_'+id||d.records.some(r=>r.id===id)||!['protect','withdraw','risk'].includes(option))return false;
+    if(option==='risk'&&(!cfg.injury||!this.canRisk(s)||!Number.isFinite(d.risk)))return false;
+    if(option==='protect'&&Object.entries(e[5]).some(([k,n])=>(s.stores[k]||0)<n))return false;
+    const death=option==='risk'&&d.risk<(cfg.death||0)?1:0;
+    const injury=option==='risk'&&!death&&d.risk<(cfg.death||0)+cfg.injury?1:0;
+    // Record the actual home death first; a missing source aborts without changing stock or cohorts.
+    if(death&&!CivilCensus.death(s,'home',1,'偶遇事故：'+e[2]))return false;
+    if(option==='protect')for(const [k,n]of Object.entries(e[5]))s.stores[k]-=n;
+    const loss={};if(option==='withdraw')for(const [k,n]of Object.entries(cfg.loss)){loss[k]=Math.min(s.stores[k]||0,n);s.stores[k]=(s.stores[k]||0)-loss[k];}
+    if(death){const x=c.society,person=x.cohorts.find(v=>v.age>=18&&v.age<65&&v.count>0);person.count--;x.cohorts=x.cohorts.filter(v=>v.count>0);s.game.population--;CivilSociety.trimJobs(s);}
+    if(injury){CivilExpedition.ensure(s).resting={count:1,until:c.elapsed+120};CivilSociety.trimJobs(s);}
+    d.records.push({id,at:c.elapsed,accepted:option==='protect',option,loss,deaths:death,injuries:injury,roll:d.risk??null});d.offered=null;d.risk=null;
+    return true;
+  },
+  hazardEvent(e,done){const s=State,buttons={},apply=option=>()=>{
+    if(!this.hazardChoose(s,e[0],option)){Civilization.notify('物资或在岗人手不足，请改选撤离。');return false;}
+    const r=s.civilization.encounters.records.at(-1);
+    if(r.deaths)Civilization.notify('事故中一名成年居民遇难，人口与岗位名册已更新。');
+    else if(r.injuries)Civilization.notify('一名居民受伤，休养120秒；期间仍需口粮，不再占用工作岗位。');
+    else Civilization.notify(option==='withdraw'?'人员已经撤离，损坏物资按实际库存扣除。':'事故得到控制，没有人员伤亡。');
+    return true;
+  };
+    buttons.protect={text:e[4],nextScene:'end',onChoose:done('这次事故已记入记录。',apply('protect'))};
+    buttons.withdraw={text:'撤离，放弃受损物资',nextScene:'end',onChoose:done('这次事故已记入记录。',apply('withdraw'))};
+    if(e[7].injury&&this.canRisk(s))buttons.risk={text:'冒险抢救物资',nextScene:'end',onChoose:done('这次事故已记入记录。',apply('risk'))};
+    return {title:e[2],text:[e[3],...(e[7].injury&&!this.canRisk(s)?['现场人手不足，或已有居民在外与休养。只能加固或撤离。']:[])],buttons};
+  },
   validate(s){const d=s.civilization.encounters;if(d===undefined){if(s.civilization.pending?.startsWith('encounter_'))throw Error('缺少偶遇记录');return;}
     const valid=id=>this.pool.some(e=>e[0]===id),fail=()=>{throw Error('偶遇记录无效');};
-    if(!d||d.schema!==1||!Number.isSafeInteger(d.rng)||d.rng<0||d.rng>4294967295||!Number.isSafeInteger(d.turn)||d.turn<0||!Array.isArray(d.records)||d.records.length>14||d.last!==null&&!valid(d.last)||d.offered!==null&&!this.pendingIds.includes('encounter_'+d.offered))fail();
-    const seen=new Set();for(const r of d.records){if(!this.pendingIds.includes('encounter_'+r.id)||seen.has(r.id)||typeof r.accepted!=='boolean'||!Number.isSafeInteger(r.at)||r.at<0||r.at>s.civilization.elapsed)fail();seen.add(r.id);}
+    if(!d||d.schema!==1||!Number.isSafeInteger(d.rng)||d.rng<0||d.rng>4294967295||!Number.isSafeInteger(d.turn)||d.turn<0||!Array.isArray(d.records)||d.records.length>this.pendingIds.length||d.last!==null&&!valid(d.last)||d.offered!==null&&!this.pendingIds.includes('encounter_'+d.offered))fail();
+    if(d.risk!==undefined&&d.risk!==null&&(!Number.isFinite(d.risk)||d.risk<0||d.risk>=1))fail();
+    const seen=new Set();for(const r of d.records){if(!this.pendingIds.includes('encounter_'+r.id)||seen.has(r.id)||typeof r.accepted!=='boolean'||!Number.isSafeInteger(r.at)||r.at<0||r.at>s.civilization.elapsed)fail();const e=this.pool.find(e=>e[0]===r.id);
+      if(e[7]){if(!['protect','withdraw','risk'].includes(r.option)||r.accepted!==(r.option==='protect')||!r.loss||![0,1].includes(r.deaths)||![0,1].includes(r.injuries)||r.deaths+r.injuries>1)fail();
+        if(r.option==='risk'){if(!e[7].injury||!Number.isFinite(r.roll)||r.roll<0||r.roll>=1||r.deaths!==Number(r.roll<(e[7].death||0))||r.injuries!==Number(!r.deaths&&r.roll<(e[7].death||0)+e[7].injury))fail();}
+        else if(r.deaths||r.injuries)fail();
+        if(Object.entries(r.loss).some(([k,n])=>!Object.hasOwn(e[7].loss,k)||!Number.isFinite(n)||n<0||n>e[7].loss[k])||r.option!=='withdraw'&&Object.keys(r.loss).length)fail();
+        if(r.deaths&&!s.civilization.census?.entries.some(v=>v.kind==='death'&&v.from==='home'&&v.count===1&&v.at===r.at&&v.reason==='偶遇事故：'+e[2]))fail();
+      }
+      seen.add(r.id);}
+    if(this.pool.find(e=>e[0]===d.offered)?.[7]?.injury&&!Number.isFinite(d.risk))fail();
     if(d.offered!==null&&(seen.has(d.offered)||s.civilization.pending!=='encounter_'+d.offered))fail();
     if(s.civilization.pending?.startsWith('encounter_')&&s.civilization.pending!=='encounter_'+d.offered)fail();
   }

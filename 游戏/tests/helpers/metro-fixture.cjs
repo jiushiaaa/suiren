@@ -29,7 +29,7 @@ function harness(saved){
       if(pending==='modern_era'){this.click('continue');return;}
       if(pending==='civic_issue'){this.click('later');return;}
       if(pending==='civic_pressure'){this.click('read');return;}
-      if(pending?.startsWith('encounter_')){this.click('decline');return;}
+      if(pending?.startsWith('encounter_')){this.click(active.scenes.start.buttons.withdraw?'withdraw':'decline');return;}
       if(pending==='cold'){this.click('wood');return;}
       // The test operator pays each real warning through its native choice;
       // no random incidents, costs or automatic-maintenance decisions are skipped.
