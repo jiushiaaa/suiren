@@ -1,0 +1,44 @@
+[
+  {
+    "file": "events_encounters.js",
+    "category": "Encounters",
+    "events": 11,
+    "scenes": 11
+  },
+  {
+    "file": "events_executioner.js",
+    "category": "Executioner",
+    "events": 6,
+    "scenes": 103
+  },
+  {
+    "file": "events_global.js",
+    "category": "Global",
+    "events": 1,
+    "scenes": 3
+  },
+  {
+    "file": "events_marketing.js",
+    "category": "Marketing",
+    "events": 1,
+    "scenes": 1
+  },
+  {
+    "file": "events_outside.js",
+    "category": "Outside",
+    "events": 6,
+    "scenes": 12
+  },
+  {
+    "file": "events_room.js",
+    "category": "Room",
+    "events": 10,
+    "scenes": 29
+  },
+  {
+    "file": "events_setpieces.js",
+    "category": "Setpieces",
+    "events": 13,
+    "scenes": 115
+  }
+]
