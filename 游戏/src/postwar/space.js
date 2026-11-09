@@ -65,10 +65,10 @@ var CivilSpace={
     const m=this.active(s);
     if(m){const last=m.receipts.at(-1),reason=last&&!last.paid?(!last.ready?'国家行政或八区履约未满足':last.crew<4?'测控人员不足4人':'检查剩余12电与维护材料'):null;return CivilSpaceContent.phases[m.kind].name+' · 连续 '+m.progress+'/'+CivilSpaceContent.phases[m.kind].duration+'秒'+(reason?' · 暂停：'+reason:'');}
     if(this.complete(s,'departure'))return '地球篇完成 · 无人先遣船已出发，可打开航天记录回看结局';
-    if(!s.civilization.tech.closed_ecology)return '下一步：科技研究航天制造与闭环生命保障';
-    if(!this.asset(s))return '下一步：街区 → 加工，建航天/生命保障车间与测控场';
+    if(!s.civilization.tech.closed_ecology)return '当前目标：研究航天制造与生命保障';
+    if(!this.asset(s))return '当前目标：建设航天设施';
     const kind=!this.complete(s,'habitat')?'habitat':!this.complete(s,'orbital')?'orbital':'departure',cfg=CivilSpaceContent.phases[kind];
-    return '下一步：'+cfg.name+' · 航天组件 '+Math.floor(s.stores.spaceparts||0)+'/'+cfg.cost.spaceparts+'，生命保障组件 '+Math.floor(s.stores.lifesupport||0)+'/'+cfg.cost.lifesupport+' · '+(this.reason(s,kind)||'条件齐备，可开始');
+    return '当前目标：'+cfg.name;
   },
   refresh(){
     if(typeof $==='undefined'||!$('#councilPanel').length)return;

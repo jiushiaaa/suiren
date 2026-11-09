@@ -591,6 +591,7 @@ var Civilization = {
     if(typeof CivilArchives!=='undefined')CivilArchives.refresh(State);
     if(typeof CivilNav!=='undefined')CivilNav.order(State);
     if(typeof CivilInterface!=='undefined')CivilInterface.layout();
+    if(typeof CivilGuidanceDetails!=='undefined')CivilGuidanceDetails.refresh();
     $('#stores').attr('data-legend',c.ruleset===2?(CivilCity.available(State)?'原镇公仓':_('stores')):c.urban?.city?'炉火城库存':_('stores'));
   },
   restart(state) {

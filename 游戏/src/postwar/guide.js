@@ -107,7 +107,10 @@ var CivilGuide={
   completed(s){const c=s.civilization,b=s.game.buildings;return [
     [!!b.hut,'建一间木屋'],[!!c.settled,'稳定聚落'],[!!b.workshop,'收拾工坊'],
     [!!c.station,'找到旧交通站'],[!!c.pump,'修复泵站'],[!!b.outpost,'设立补给外站'],
-    [!!c.village?.riverKnown,'寻找河谷'],[!!c.village?.town,'成为小镇']
+    [!!c.village?.riverKnown,'寻找河谷'],[!!c.village?.town,'成为小镇'],
+    [Number.isSafeInteger(c.city?.cityAt),'登记万人城市'],[!!c.city?.institutions,'设立城市机构'],
+    [!!c.conurbation?.clusterAt,'建立城市群'],[!!c.cityNetwork?.enabled,'接通第三座城市'],
+    [!!c.cityCouncil,'成立共同议事会']
   ].filter(([ok])=>ok).map(([,label])=>label);},
   refresh(s){
     if(typeof document==='undefined'||typeof document.getElementById!=='function'||!document.getElementById('roomPanel'))return;
@@ -200,5 +203,26 @@ var CivilNav={
       if(prev)prev.after(el);else header.prepend(el);prev=el;
     }
     const more=document.getElementById('civilNavMore');if(more)header.append(more);
+  }
+};
+
+var CivilGuidanceDetails={
+  fold(selector){
+    document.querySelectorAll(selector).forEach(el=>{
+      if(el.closest('details')||!el.textContent.trim())return;
+      const box=document.createElement('details'),label=document.createElement('summary');
+      box.className='civil-details civil-routine-details';label.textContent='规则与用度';
+      el.before(box);box.append(label,el);
+    });
+  },
+  refresh(){
+    if(typeof document==='undefined')return;
+    this.fold('#cityNetIntro, #cityNetExpansionCost, #futureTerms, #cityInstitutionStatus, #cityHomeScope');
+    document.querySelectorAll('.civil-summary > .civil-brief').forEach(el=>{
+      if(!el.textContent.trim()||/剩余|还需|还有|短缺|不足|暂停|停工/.test(el.textContent))return;
+      // Keep this direct child in place: summary renderers refresh it every tick.
+      let box=el.querySelector('details');
+      if(!box){const text=el.textContent;el.replaceChildren();box=document.createElement('details');box.className='civil-details';const label=document.createElement('summary');label.textContent='规则与用度';const p=document.createElement('p');p.textContent=text;box.append(label,p);el.append(box);}
+    });
   }
 };
