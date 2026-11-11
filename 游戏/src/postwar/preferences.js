@@ -1,7 +1,7 @@
 /* MPL-2.0 — Device preferences and a backed-up, explicit new-world transition. */
 var CivilPreferences = {
-  key:'preferences:postwar.interface.v1', prefs:{dark:false}, revision:0,
-  normalize(value){return {dark:value?.dark===true};},
+  key:'preferences:postwar.interface.v1', prefs:{dark:false,layout:"centered"}, revision:0,
+  normalize(value){return {dark:value?.dark===true,layout:value?.layout==='wide'?'wide':'centered'};},
   async load(){
     const revision=this.revision;
     try{const value=await CivilLocalSaves.readRaw(this.key);if(revision===this.revision)this.prefs=this.normalize(value);}
@@ -19,16 +19,20 @@ var CivilPreferences = {
     if(typeof document==='undefined')return;
     document.documentElement.classList.toggle('dark',this.prefs.dark);
     document.body.classList.toggle('dark',this.prefs.dark);
+    document.body.classList.toggle('civil-wide',this.prefs.layout==='wide');
+    const layout=document.getElementById('layoutMenu');if(layout){layout.textContent=this.prefs.layout==='wide'?'居中':'铺满';layout.setAttribute('aria-label',this.prefs.layout==='wide'?'切换为居中布局':'切换为铺满布局');}
     const sheet=document.getElementById('civilDarkTheme');if(sheet)sheet.media=this.prefs.dark?'all':'not all';
     const button=document.getElementById('themeMenu');
     if(button){button.textContent=this.prefs.dark?'日间模式':'夜间模式';button.setAttribute('aria-pressed',String(this.prefs.dark));}
   },
+  toggleLayout(){this.prefs.layout=this.prefs.layout==='wide'?'centered':'wide';this.apply();return this.save();},
   toggleTheme(){this.prefs.dark=!this.prefs.dark;this.apply();return this.save();},
   menu(){
     const menu=$('.menu').first();
     for(const [id,label,mode] of [['saveMenu','存档','save'],['loadMenu','读档','load']])$('<button>').attr({id,type:'button'}).addClass('menuBtn').text(label).on('click',()=>CivilSlots.menu(mode)).appendTo(menu);
     $('<button>').attr({id:'restartMenu',type:'button'}).addClass('menuBtn').text('重开').on('click',()=>this.restartMenu()).appendTo(menu);
     $('<button>').attr({id:'themeMenu',type:'button'}).addClass('menuBtn').on('click',()=>this.toggleTheme()).appendTo(menu);
+    $('<button>').attr({id:'layoutMenu',type:'button'}).addClass('menuBtn').on('click',()=>this.toggleLayout()).appendTo(menu);
     this.apply();
   },
   restartMenu(){

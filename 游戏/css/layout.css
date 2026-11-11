@@ -285,3 +285,14 @@ body.dark .civil-slots { background:#252720; color:#ddd; }
 .civil-guide-done p { margin:6px 0; }
 #buildBtns .tooltip, #craftBtns .tooltip { color:#222; }
 body.dark #buildBtns .tooltip, body.dark #craftBtns .tooltip { color:#ddd; }
+
+/* Device-only reading width; mobile stacking remains unchanged. */
+@media(min-width:940px) {
+  body:not(.civil-wide):not(.civil-entry) div#wrapper {
+    max-width:1440px; margin-inline:auto;
+    grid-template-columns:220px minmax(0,1fr) 200px;
+    column-gap:28px; padding-inline:28px;
+  }
+  body:not(.civil-wide) > .menu { right:max(10px,calc((100vw - 1440px) / 2 + 16px)); }
+}
+@media(max-width:939px) { #layoutMenu { display:none; } }
