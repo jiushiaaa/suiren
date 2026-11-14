@@ -1,6 +1,9 @@
 /* MPL-2.0 — Lazy gesture-gated sound. Preferences belong to this device, never a save. */
 var CivilSound={
  levels:{"room":1.7334,"village":0.9137,"town":0.4944,"public":0.725,"industry":0.4007,"nation":1.0219,"advanced":0.8161,"echo":1.7885,"flight":1.016,"wind":2.5,"fire":1.2447,"rain":1.3528,"settlement":1.3184,"factory":0.9197,"city":1.9793,"future":2.5,"beetle":1.0614},
+ // Repeat the musical body, keeping the original introduction on first playback. Seconds measured from local audio.
+ loops:{public:[11,115],industry:[2,114],nation:[15,118],flight:[30,109]},
+ pending:{},retries:{},
  key:'postwar.sound.v1',context:null,unlocked:false,channels:{},retiring:new Set(),effects:new Set(),failures:[],
  files:{room:'bgm_room.mp3',village:'bgm_village.mp3',town:'bgm_town.mp3',public:'bgm_city_public.mp3',industry:'bgm_city_industry.mp3',nation:'bgm_nation.mp3',advanced:'bgm_advanced.mp3',echo:'bgm_echo.mp3',flight:'bgm_flight.mp3',wind:'amb_wind.mp3',fire:'amb_fire.mp3',rain:'amb_rain.mp3',settlement:'amb_town.mp3',factory:'amb_factory.mp3',city:'amb_city.mp3',future:'amb_future.mp3',beetle:'amb_beetle.mp3'},
  defaults(mobile=false){return {music:true,ambient:!mobile,effects:true,volume:.55};},
@@ -8,10 +11,10 @@ var CivilSound={
  mobile(){return window.matchMedia?.('(pointer: coarse)').matches||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);},
  init(){if(typeof window==='undefined'||typeof document==='undefined')return;
   if(!this.prefs){this.prefs=this.normalize(null,this.mobile());this.preferencesReady=this.restorePreferences();}
-  if(!this.listening){this.listening=true;this.gesture=e=>{if(e.isTrusted!==false&&(e.type==='pointerdown'||['Enter',' ','ArrowUp','ArrowDown','Tab'].includes(e.key)))this.unlock();};document.addEventListener('pointerdown',this.gesture,{passive:true});document.addEventListener('keydown',this.gesture);this.timer=window.setInterval(()=>this.update(),1000);}
+  if(!this.listening){this.listening=true;this.gesture=e=>{if(e.isTrusted!==false&&(e.type==='pointerdown'||['Enter',' ','ArrowUp','ArrowDown','Tab'].includes(e.key)))this.unlock();};document.addEventListener('pointerdown',this.gesture,{passive:true});document.addEventListener('keydown',this.gesture);this.timer=window.setInterval(()=>this.update(),1000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)this.unlock();});window.addEventListener?.('online',()=>{this.retries={};this.update();});}
   this.menu();this.update();
  },
- async unlock(){if(typeof CivilLanding!=='undefined'&&CivilLanding.held())return;if(this.preferencesReady)await this.preferencesReady;if(this.unlocked&&this.context?.state==='running')return;try{
+ async unlock(){if(typeof CivilLanding!=='undefined'&&CivilLanding.held())return;if(this.preferencesReady)await this.preferencesReady;if(this.unlocked&&this.context?.state==='running'){this.update();return;}try{
   if(!this.context){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext){this.failure('浏览器未提供声音接口');return;}this.context=new AudioContext();this.master=this.context.createGain();if(this.context.createDynamicsCompressor){this.limiter=this.context.createDynamicsCompressor();this.limiter.threshold.value=-1;this.limiter.knee.value=0;this.limiter.ratio.value=20;this.limiter.attack.value=.003;this.limiter.release.value=.2;this.master.connect(this.limiter);this.limiter.connect(this.context.destination);}else this.master.connect(this.context.destination);this.buses={};for(const name of ['music','ambient','effects']){const g=this.context.createGain();g.gain.value=0;g.connect(this.master);this.buses[name]=g;}}
   await this.context.resume();this.unlocked=this.context.state==='running';if(this.unlocked)this.update();
  }catch{this.failure('声音暂未启用；下次操作会重试');}},
@@ -21,15 +24,33 @@ var CivilSound={
  },
  ramp(param,value,seconds=.15){const now=this.context.currentTime;if(param.cancelAndHoldAtTime)param.cancelAndHoldAtTime(now);else{const old=param.value;param.cancelScheduledValues(now);param.setValueAtTime(old,now);}param.linearRampToValueAtTime(value,now+seconds);},
  gains(event=false){if(!this.context)return;this.ramp(this.master.gain,this.prefs.volume);this.ramp(this.buses.music.gain,this.prefs.music?.6*(event?Math.pow(10,-6/20):1):0);this.ramp(this.buses.ambient.gain,this.prefs.ambient?.6*.4:0);this.ramp(this.buses.effects.gain,this.prefs.effects?.6:0);},
- dispose(c){if(!c)return;clearTimeout(c.stopTimer);c.audio.pause();c.audio.removeAttribute('src');c.audio.load();try{c.source.disconnect();c.gain.disconnect();}catch{}this.retiring.delete(c);this.effects.delete(c);},
- async switch(name,id,force=false){const path=id?'audio/postwar/'+this.files[id]:null;this.requested??={};this.versions??={};if(!force&&this.requested[name]===path)return;if(!this.unlocked)return;this.requested[name]=path;const version=this.versions[name]=(this.versions[name]||0)+1;
-  if(!path){const old=this.channels[name];delete this.channels[name];if(old){this.ramp(old.gain.gain,0,3);this.retiring.add(old);old.stopTimer=setTimeout(()=>this.dispose(old),3100);}return;}
-  if(!this.files[id])return;const audio=new Audio(path),source=this.context.createMediaElementSource(audio),gain=this.context.createGain(),c={audio,source,gain,path,id};audio.preload='none';audio.loop=true;gain.gain.value=0;source.connect(gain);gain.connect(this.buses[name]);
-  // Begin the fade only after playback starts. Rapid switches invalidate loading tracks, not the playing one.
-  try{await audio.play();if(this.versions[name]!==version){this.dispose(c);return;}const old=this.channels[name];this.channels[name]=c;this.ramp(gain.gain,this.levels[id]||1,3);if(old){this.ramp(old.gain.gain,0,3);this.retiring.add(old);old.stopTimer=setTimeout(()=>this.dispose(old),3100);}audio.ontimeupdate=()=>{if(this.channels[name]===c&&audio.duration>8&&audio.duration-audio.currentTime<3&&!c.loopStarting){c.loopStarting=true;this.switch(name,id,true);}};
-  }catch{this.dispose(c);this.failed??=new Set();this.failed.add(path);if(this.channels[name])this.channels[name].loopStarting=false;this.failure('部分声音未能加载');}
+ dispose(c){if(!c||c.disposed)return;c.disposed=true;clearTimeout(c.stopTimer);c.audio.ontimeupdate=c.audio.onerror=c.audio.onended=c.audio.onloadedmetadata=null;c.audio.pause();c.audio.removeAttribute('src');c.audio.load();try{c.source.disconnect();c.gain.disconnect();}catch{}this.retiring.delete(c);this.effects.delete(c);},
+ retry(name,c){if(c.disposed)return;const current=this.channels[name]===c,loading=this.pending[name]===c;if(!current&&!loading)return;
+  if(current)delete this.channels[name];if(loading){delete this.pending[name];this.versions[name]++;}
+  this.dispose(c);const old=this.channels[name];if(old)old.loopStarting=false;
+  this.requested[name]=null;const r=this.retries[name]||{attempt:0};r.attempt++;r.at=Date.now()+Math.min(30000,1000*2**Math.min(r.attempt,5));this.retries[name]=r;this.failure('部分声音未能加载');
  },
- update(){if(typeof CivilLanding!=='undefined'&&CivilLanding.held())return;if(!this.prefs||typeof State==='undefined')return;const event=typeof Events!=='undefined'?Events.activeEvent():null;this.selection=this.select(State,{event:event?.title||event?.scenes?.start?.title||'',room:typeof Engine!=='undefined'&&Engine.activeModule===Room,road:typeof Engine!=='undefined'&&Engine.activeModule===Civilization.roadModule});if(!this.unlocked)return;this.gains(!!event);for(const name of ['music','ambient']){const id=this.prefs[name]?this.selection[name]:null;if(id&&this.failed?.has('audio/postwar/'+this.files[id]))continue;this.switch(name,id);}if(!this.failures.length&&typeof $!=='undefined')$('#civilSoundStatus').text('背景音轨依当前时代阶段与地理疆域自动切替；音频偏好设置仅存储于本地设备。');},
+ async switch(name,id,force=false){const path=id?'audio/postwar/'+this.files[id]:null;this.requested??={};this.versions??={};if(!path)delete this.retries[name];if(!force&&this.requested[name]===path&&(path||!this.channels[name]&&!this.pending[name]))return;if(!this.unlocked)return;
+  const previous=this.pending[name];if(previous){this.dispose(previous);delete this.pending[name];}
+  this.requested[name]=path;const version=this.versions[name]=(this.versions[name]||0)+1;
+  if(!path){const old=this.channels[name];delete this.channels[name];delete this.retries[name];if(old){this.ramp(old.gain.gain,0,3);this.retiring.add(old);old.stopTimer=setTimeout(()=>this.dispose(old),3100);}return;}
+  if(!this.files[id])return;const audio=new Audio(path),source=this.context.createMediaElementSource(audio),gain=this.context.createGain(),c={audio,source,gain,path,id,started:Date.now(),progressAt:Date.now(),position:0};this.pending[name]=c;audio.preload='auto';audio.loop=true;gain.gain.value=0;source.connect(gain);gain.connect(this.buses[name]);
+  const range=this.loops[id],repeat=force&&this.channels[name]?.id===id;
+  audio.onloadedmetadata=()=>{if(repeat&&range&&audio.duration>range[1])audio.currentTime=range[0];};
+  audio.onerror=()=>this.retry(name,c);
+  // Keep the previous track audible until the replacement actually starts. No permanent failed-track blacklist.
+  try{await audio.play();if(c.disposed||this.versions[name]!==version){this.dispose(c);return;}delete this.pending[name];delete this.retries[name];if(!Object.keys(this.retries).length)this.failures=this.failures.filter(message=>message!=='部分声音未能加载');const old=this.channels[name];this.channels[name]=c;c.progressAt=Date.now();this.ramp(gain.gain,this.levels[id]||1,3);if(old){this.ramp(old.gain.gain,0,3);this.retiring.add(old);old.stopTimer=setTimeout(()=>this.dispose(old),3100);}
+   audio.ontimeupdate=()=>this.checkLoop(name,c);audio.onended=()=>{if(this.channels[name]===c)this.switch(name,id,true);};
+  }catch{this.retry(name,c);}
+ },
+ checkLoop(name,c){const a=c.audio,end=this.loops[c.id]?.[1]||a.duration;if(this.channels[name]===c&&end>8&&a.currentTime>=end-3&&!c.loopStarting&&!this.pending[name]&&Date.now()>=(this.retries[name]?.at||0)){c.loopStarting=true;this.switch(name,c.id,true);}},
+ recover(name){const now=Date.now(),p=this.pending[name];if(p&&now-p.started>20000)this.retry(name,p);const c=this.channels[name];if(!c||this.context.state==='suspended'||this.context.state==='interrupted'||typeof document!=='undefined'&&document.hidden)return;
+  if(c.audio.paused&&!c.resuming){c.resuming=true;c.progressAt=now;Promise.resolve(c.audio.play()).catch(()=>this.retry(name,c)).finally(()=>{c.resuming=false;});}
+  if(c.audio.currentTime!==c.position){c.position=c.audio.currentTime;c.progressAt=now;}else if(now-c.progressAt>12000&&!this.pending[name]){this.retry(name,c);return;}this.checkLoop(name,c);
+ },
+ update(){if(typeof CivilLanding!=='undefined'&&CivilLanding.held())return;if(!this.prefs||typeof State==='undefined')return;const event=typeof Events!=='undefined'?Events.activeEvent():null;this.selection=this.select(State,{event:event?.title||event?.scenes?.start?.title||'',room:typeof Engine!=='undefined'&&Engine.activeModule===Room,road:typeof Engine!=='undefined'&&Engine.activeModule===Civilization.roadModule});if(!this.unlocked)return;
+  if(['suspended','interrupted'].includes(this.context.state)&&!(typeof document!=='undefined'&&document.hidden)&&!this.resuming){this.resuming=true;Promise.resolve(this.context.resume()).catch(()=>{}).finally(()=>{this.resuming=false;});}
+  this.gains(!!event);for(const name of ['music','ambient']){const id=this.prefs[name]?this.selection[name]:null;this.recover(name);if(id&&Date.now()<(this.retries[name]?.at||0))continue;this.switch(name,id);}if(!this.failures.length&&typeof $!=='undefined')$('#civilSoundStatus').text('背景音轨依当前时代阶段与地理疆域自动切替；音频偏好设置仅存储于本地设备。');},
  async effect(path){if(typeof CivilLanding!=='undefined'&&CivilLanding.held())return;if(!this.unlocked||!this.prefs.effects||!/^audio\/(?:build|craft|buy|light-fire|stoke-fire|gather-wood|check-traps|embark|footsteps-[1-6]|encounter-tier-[1-3]|weapon-(?:ranged|melee|unarmed)-[1-3]|death|event-[a-z-]+|eat-meat|use-meds)\.flac$/.test(path||''))return;
   if(this.effects.size>=4||Date.now()-(this.effectAt||0)<90)return;this.effectAt=Date.now();const audio=new Audio(path),source=this.context.createMediaElementSource(audio),gain=this.context.createGain(),c={audio,source,gain};gain.gain.value=.7;source.connect(gain);gain.connect(this.buses.effects);this.effects.add(c);audio.onended=()=>this.dispose(c);try{await audio.play();c.stopTimer=setTimeout(()=>{this.ramp(gain.gain,0,.2);c.stopTimer=setTimeout(()=>this.dispose(c),250);},4000);}catch{this.dispose(c);}},
  // Sound belongs to this browser, outside the world/cloud save and its slot backups.

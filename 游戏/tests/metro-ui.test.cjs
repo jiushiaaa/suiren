@@ -22,7 +22,7 @@ function harness(fixture){
   for(const id of ['councilPanel','roomPanel','roadPanel','stores'])elements.set('#'+id,new Element().attr('id',id));
   const Button={Button:function(opts){const element=new Element().attr('id',opts.id).text(opts.text);element.handlers.click=opts.click;return element;},setDisabled(element,value){element.disabled=!!value;}};
   const get=key=>key.split('.').reduce((value,key)=>value?.[key],s);
-  const ctx=vm.createContext({State:s,_:x=>x,$,Button,TextEncoder,TextDecoder,setTimeout,clearTimeout,document:{addEventListener(){},createTextNode:text=>({nodeType:3,textContent:text})},
+  const ctx=vm.createContext({State:s,_:x=>x,$,Button,TextEncoder,TextDecoder,setTimeout,clearTimeout,document:{querySelectorAll(){return [];},addEventListener(){},createTextNode:text=>({nodeType:3,textContent:text})},
     Room:{buttons:{}},Outside:{updateVillage(){},updateWorkersView(){}},Events:{activeEvent:()=>active,startEvent:event=>{active=event;}},AudioEngine:{},Engine:{saveGame(){}},
     Notifications:{notify(){},printMessage(){}},$SM:{get:(key,zero)=>get(key)??(zero?0:undefined),fireUpdate(){}}});
   const files=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="([^"]+)"/g)].map(m=>m[1].split('?')[0]).filter(f=>f.startsWith('content/')||f.startsWith('src/postwar/'));

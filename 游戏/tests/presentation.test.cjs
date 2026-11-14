@@ -53,7 +53,7 @@ function viewHarness(){
   const $=selector=>selector instanceof Element?selector:selector.startsWith('<')?new Element():elements.get(selector)||new Element(0);
   for(const id of ['roomPanel','roadPanel','stores','main'])elements.set('#'+id,new Element());
   const ctx=vm.createContext({State:s,_:x=>x,$,TextEncoder,TextDecoder,performance:{now:()=>now},setTimeout,clearTimeout,
-    document:{addEventListener(){},createTextNode:text=>({nodeType:3,textContent:text})},
+    document:{querySelectorAll(){return [];},addEventListener(){},createTextNode:text=>({nodeType:3,textContent:text})},
     Button:{Button:function(o){const b=new Element().attr('id',o.id);b.handlers.click=o.click;return b;},setDisabled(){}},
     Room:{buttons:{}},Outside:{updateVillage(){},updateWorkersView(){}},Events:{activeEvent:()=>null},AudioEngine:{},
     Engine:{saveGame(){},init(){calls.init++;}},Notifications:{notify(){},printMessage(){}},

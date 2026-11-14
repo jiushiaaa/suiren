@@ -296,3 +296,8 @@ body.dark #buildBtns .tooltip, body.dark #craftBtns .tooltip { color:#ddd; }
   body:not(.civil-wide) > .menu { right:max(10px,calc((100vw - 1440px) / 2 + 16px)); }
 }
 @media(max-width:939px) { #layoutMenu { display:none; } }
+
+/* A quiet, non-modal research receipt; never intercept play or cover the footer. */
+#civilResearchNotice { position: fixed; bottom: 68px; left: 50%; transform: translateX(-50%); z-index: 19; max-width: min(560px, calc(100vw - 40px)); padding: 10px 18px; border: 1px solid #777; background: #fff; color: #222; line-height: 1.6; pointer-events: none; overflow-wrap: anywhere; }
+body.dark #civilResearchNotice { background: #272822; color: #ddd; border-color: #999; }
+@media (max-width: 600px) { #civilResearchNotice { bottom: 110px; width: max-content; padding: 8px 12px; font-size: 14px; } }

@@ -1,7 +1,7 @@
 /* MPL-2.0 — ADR-native extension. UI primitives and room/forest simulation stay in script/. */
 var Civilization = {
   defaults() {
-    return {elapsed:0,speed:1,maxSpeed:1,tech:{},events:{},policy:null,policySeen:{},trust:50,hunger:0,stableFor:0,
+    return {elapsed:0,speed:1,maxSpeed:4,tech:{},events:{},policy:null,policySeen:{},trust:50,hunger:0,stableFor:0,
       populationClock:0,productionClock:0,randomClock:240,policyCooldown:0,residentTime:0,
       research:null,journey:null,pending:null,settled:false,station:false,pump:false,trade:false,visited:{},buildingsSeen:{},courseRule:1,ruleset:2,polishVersion:1,pacingVersion:2};
   },
@@ -40,6 +40,8 @@ var Civilization = {
     if(typeof CivilEditorial!=='undefined')CivilEditorial.install();
     if(typeof CivilSetup!=='undefined')CivilSetup.opening(State);
     this.resetViewRefresh();
+    clearTimeout(this.researchNoticeTimer);if(typeof document!=='undefined')document.getElementById('civilResearchNotice')?.remove();
+    this.unlockSpeed(false);
     CivilClock.rate = this.effectiveSpeed();
     const menu=$('<div>').addClass('menu').appendTo('body');
     $('<span>').attr('id','speedMenu').appendTo(menu);
@@ -53,6 +55,21 @@ var Civilization = {
     Engine.setInterval(()=>this.tick(),1000,false,'civilTick');
   },
   notify(text) { Notifications.notify(null,text); },
+  completedResearch() {
+    const c=State.civilization, found=new Map();
+    for(const [prefix,tech,definitions]of [['ordinary',c.tech,typeof CivilText!=='undefined'?CivilText.research:{}],['future',c.polity?.future?.tech,typeof CivilFutureContent!=='undefined'?CivilFutureContent.tech:{}],['earth',c.polity?.earth?.tech,typeof CivilEarthContent!=='undefined'?CivilEarthContent.tech:{}]])
+      for(const id of Object.keys(tech||{}))if(tech[id]!==false&&tech[id]!=null&&definitions?.[id])found.set(prefix+':'+id,definitions[id].name||id);
+    return found;
+  },
+  researchFeedback(before) {
+    const names=[...this.completedResearch()].filter(([key])=>!before.has(key)).map(([,name])=>name);
+    for(const name of names)this.notify('【研究完成】'+name);
+    if(!names.length||typeof document==='undefined')return;
+    let toast=document.getElementById('civilResearchNotice');
+    if(!toast){toast=document.createElement('div');toast.id='civilResearchNotice';toast.setAttribute('role','status');toast.setAttribute('aria-live','polite');document.body.appendChild(toast);}
+    toast.replaceChildren();for(const name of names){const row=document.createElement('div'),label=document.createElement('span'),ending=document.createElement('span');label.textContent=name;ending.textContent='已完成';row.append(label,document.createTextNode(' · '),ending);toast.appendChild(row);}
+    toast.hidden=false;clearTimeout(this.researchNoticeTimer);this.researchNoticeTimer=setTimeout(()=>{toast.hidden=true;},6000);
+  },
   settleEconomy(s) {
     const before={...s.stores},roster=typeof CivilPacing!=='undefined'?CivilPacing.settle(s):null,office=typeof CivilCityInstitutions!=='undefined'?CivilCityInstitutions.homeTick(s):null;
     const result=CivilRules.settle(s), flow=result.flow;
@@ -91,6 +108,7 @@ var Civilization = {
   },
   tick() {
     if(State.civilization.setup?.confirmed===false){if(!Events.activeEvent())this.showPending();return;}
+    const completedBefore=this.completedResearch();
     const c=State.civilization; c.elapsed++; c.policyCooldown=Math.max(0,c.policyCooldown-1);
     c.productionClock++; c.populationClock++;
     if(!Events.activeEvent() && !c.pending)c.randomClock=Math.max(0,c.randomClock-1);
@@ -121,7 +139,6 @@ var Civilization = {
       if(c.stableFor>=60) {
         c.settled=true;this.unlockSpeed(false);
         this.notify('粮棚有余粮，炉边有干柴。人们开始把这里叫作聚落。工匠提议腾出一间工坊。');
-        this.notify('各司其职，运转平稳。现在可以按你的节奏切换 1× 或 2× 速度。');
         this.renderSpeed();
       }
     }
@@ -129,7 +146,7 @@ var Civilization = {
       c.research.remaining=Math.max(0,c.research.remaining-(typeof CivilSociety!=='undefined'?CivilSociety.researchSpeed(State):1));
       if(c.research.remaining===0) {
         const id=c.research.id;c.tech[id]=true;c.research=null;
-        this.notify(CivilText.research[id].done); this.updateIncome();
+        this.updateIncome();
         this.lastTech=id;
       }
     }
@@ -185,6 +202,7 @@ var Civilization = {
     if(typeof CivilModern!=='undefined')CivilModern.tick(State);
     if(typeof CivilCivic!=='undefined')CivilCivic.tick(State);
     if(typeof CivilArchives!=='undefined')CivilArchives.tick(State);
+    this.researchFeedback(completedBefore);
     this.unlockSpeed(true);
     // Cohorts, births and arriving parties reconcile before publishing native UI updates.
     if(State.game.population!==populationBefore){Outside.updateVillage();this.updateIncome();}
@@ -246,8 +264,7 @@ var Civilization = {
   },
   speedLimit(s=State) {
     const c=s.civilization;
-    let limit=c.settled?2:1;
-    if(s.game.buildings.outpost)limit=4;
+    let limit=4;
     if(c.urban?.city===true&&c.tech.passenger_transport===true){
       limit=8;
       const cities=1+Object.entries(c.municipal?.nodes||{}).filter(([id,n])=>n.city===true&&Object.hasOwn(c.regions?.nodes||{},id)).length;
@@ -264,7 +281,6 @@ var Civilization = {
     if(limit<=c.maxSpeed)return false;
     c.maxSpeed=limit;
     if(announce){
-      if(limit===4)this.notify('补给线排好了固定轮值。4× 速度已永久开放。');
       if(limit===8)this.notify('城内与迁居车队都已排妥轮值。8× 速度已永久开放。');
       if(limit===32)this.notify(c.ruleset===2&&Number.isSafeInteger(c.polity?.foundedAt)?'共同机构已接手日常事务，32× 速度已永久开放。':'轨道测绘完成，32× 速度已永久开放。');
       if(limit===64)this.notify('地球共同法正式生效，64× 速度已永久开放。');

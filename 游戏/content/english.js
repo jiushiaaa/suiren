@@ -6,3 +6,5 @@ CivilEnglishText.push({"source": "规则与用度", "text": "Rules and costs"},{
 CivilEnglishText.push({source:"设立先进共同体",text:"Establish an advanced community"});
 
 CivilEnglishText.push({source:"居中",text:"Center layout"},{source:"铺满",text:"Wide layout"},{source:"切换为居中布局",text:"Switch to centered layout"},{source:"切换为铺满布局",text:"Switch to wide layout"});
+
+CivilEnglishText.push({source:"【研究完成】{name}",text:"[Research] {name} completed"},{source:"已完成",text:"Completed"});

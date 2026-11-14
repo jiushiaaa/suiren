@@ -17,7 +17,7 @@ function harness() {
 test('condition-driven policy, stable settlement, research and mandatory discoveries form a reachable sequence',()=>{
  const h=harness(),c=h.state.civilization;h.state.stores.food=12;
  h.step(1);assert.equal(h.active.title,'同一口锅');h.choose('policy_equal');assert.equal(c.policy,'equal');
- h.state.stores.food=30;h.step(59);assert.equal(c.settled,false);h.step(1);assert.equal(c.settled,true);assert.equal(c.maxSpeed,2);assert.equal(c.speed,1);
+ h.state.stores.food=30;h.step(59);assert.equal(c.settled,false);h.step(1);assert.equal(c.settled,true);assert.equal(c.maxSpeed,4);assert.equal(c.speed,1);
  h.state.game.buildings.workshop=1;h.ctx.Civilization.research('water');assert.equal(c.research.remaining,120);h.step(119);assert.equal(c.tech.water,undefined);h.step(1);assert.equal(c.tech.water,true);
  h.ctx.Civilization.depart('station');assert.equal(c.journey.remaining,120);h.step(120);assert.equal(c.pending,'station');h.choose('recover');assert.equal(c.station,true);
  h.step(1);assert.equal(c.pending,'merchant');h.choose('decline');assert.equal(c.trade,false);assert.equal(c.events.merchant,true);

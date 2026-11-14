@@ -2,43 +2,33 @@
 # yarn lockfile v1
 
 
-"@66rpg/lumimaker-create@^0.1.61":
-  version "0.1.61"
-  resolved "https://registry.npmjs.org/@66rpg/lumimaker-create/-/lumimaker-create-0.1.61.tgz"
-  integrity sha512-PtRymTr1T+bM1NbzvO5+C5rGj4ZweyZFDZRU8ieD6COK0+VT59VwM4bpNY4bNHVmmgeGoxamh9WArR++h6qeNw==
+"@66rpg/lumimaker-create@^0.1.66":
+  version "0.1.66"
+  resolved "https://registry.npmjs.org/@66rpg/lumimaker-create/-/lumimaker-create-0.1.66.tgz"
+  integrity sha512-x3292CA1ibadhJXgpXOUdmNPAI5mTgWSvhtqDbHV6QC+tlwB0YQpEqTXLlLhnIi736aO4tlHN5WsFDFM9V2C8w==
 
-"@66rpg/lumimaker-darwin-arm64@0.1.61":
-  version "0.1.61"
-  resolved "https://registry.npmjs.org/@66rpg/lumimaker-darwin-arm64/-/lumimaker-darwin-arm64-0.1.61.tgz"
-  integrity sha512-IQZJFdIhyzW7uqmbo8g87Z3TFXj5fk73f1CvM1BdCyPAR2b3Xkq4UMLHqfTda2LQczBY17PBI7VB7QLVs8tSyw==
-
-"@66rpg/lumimaker-darwin-x64@0.1.61":
-  version "0.1.61"
-  resolved "https://registry.npmjs.org/@66rpg/lumimaker-darwin-x64/-/lumimaker-darwin-x64-0.1.61.tgz"
-  integrity sha512-hU7GGSMUdCh6vAFv8CIw1zk9Vca0VPn++7SXt6ulbvF1CxXGRiaNnjg0FR6Sq8/Lhp2/968uj5qkowAYzX8XUw==
+"@66rpg/lumimaker-darwin-arm64@0.1.66":
+  version "0.1.66"
+  resolved "https://registry.npmjs.org/@66rpg/lumimaker-darwin-arm64/-/lumimaker-darwin-arm64-0.1.66.tgz"
+  integrity sha512-eYoEbgRXpZu26gg/5nrNgH2juFBZjDm4x+FMnj49YrN0Z3hSInZLoIIT3IGENN+ZZJNOHr6G5AbA1NqCsBUpAw==
 
 "@66rpg/lumimaker-sdk@0.1.61":
   version "0.1.61"
   resolved "https://registry.npmjs.org/@66rpg/lumimaker-sdk/-/lumimaker-sdk-0.1.61.tgz"
   integrity sha512-cUH1/taShQlkEnbU0izd4hyUF4HAiDOSh8ygAoIyAtI6WnwSIVswRtdUrN+xKLZ9w7FiRVbOCsqWBGhYYonkKA==
 
-"@66rpg/lumimaker-win32-x64@0.1.61":
-  version "0.1.61"
-  resolved "https://registry.npmjs.org/@66rpg/lumimaker-win32-x64/-/lumimaker-win32-x64-0.1.61.tgz"
-  integrity sha512-C+JahDLVi3AcK1NNqDglSj3ruLZHhGJXYDdTqgCR/fmW3KHaeNxGiS9OcchIPWYgjexKvYhvXq6MHu/vvi0Tdw==
-
-"@66rpg/lumimaker@^0.1.61":
-  version "0.1.61"
-  resolved "https://registry.npmjs.org/@66rpg/lumimaker/-/lumimaker-0.1.61.tgz"
-  integrity sha512-wND6sYQhYYCvsooXa84E8OZV4t98mD/1+PSeYvK44v6akjxO7IlbfVqNWcxTAEyxZbMKg433fde8ljsx5jJe2Q==
+"@66rpg/lumimaker@^0.1.66":
+  version "0.1.66"
+  resolved "https://registry.npmjs.org/@66rpg/lumimaker/-/lumimaker-0.1.66.tgz"
+  integrity sha512-aQpmlF8EA2xNMK4fzpNNhzpwlUcWoV+WY4gLBEKnt5oaI69i7TqgdwoKNQgSa/buj5ssDFlqjlpIanBYxEaihg==
   dependencies:
     "@clack/prompts" "^1.8.0"
     ajv "^8.17.1"
     picocolors "^1.1.1"
   optionalDependencies:
-    "@66rpg/lumimaker-darwin-arm64" "0.1.61"
-    "@66rpg/lumimaker-darwin-x64" "0.1.61"
-    "@66rpg/lumimaker-win32-x64" "0.1.61"
+    "@66rpg/lumimaker-darwin-arm64" "0.1.66"
+    "@66rpg/lumimaker-darwin-x64" "0.1.66"
+    "@66rpg/lumimaker-win32-x64" "0.1.66"
 
 "@clack/core@1.5.1":
   version "1.5.1"

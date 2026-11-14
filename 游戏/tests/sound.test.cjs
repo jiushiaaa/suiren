@@ -24,3 +24,16 @@ test('remembered device preferences restore without touching the world and write
  a.mobile=()=>false;a.menu=a.update=()=>{};a.prefs=a.defaults();await a.restorePreferences();assert.equal(a.prefs.music,false);assert.equal(a.prefs.volume,.3);assert.equal(JSON.stringify(state),before);
  let attempts=0;a.writePreferences=async()=>{if(!attempts++)throw Error('quota');};await a.save();assert.equal(a.failures.length,1);await a.save();assert.equal(attempts,2);assert.equal(JSON.stringify(state),before);
 });
+function playback(){let now=10000;const media=[];const param=()=>({value:0,cancelScheduledValues(){},setValueAtTime(){},linearRampToValueAtTime(){}});
+ const context={state:'running',currentTime:0,createGain:()=>({gain:param(),connect(){},disconnect(){}}),createMediaElementSource:()=>({connect(){},disconnect(){}})};
+ class Media{constructor(){this.currentTime=0;this.duration=120;media.push(this);}async play(){this.paused=false;this.onloadedmetadata?.();if(this.reject)throw Error('offline');}pause(){this.paused=true;}removeAttribute(){}load(){}}
+ const a=sound({Audio:Media,Date:{now:()=>now}});a.context=context;a.buses={music:context.createGain(),ambient:context.createGain()};a.unlocked=true;
+ return {a,media,advance(ms){now+=ms;}};
+}
+test('public-city repeat skips the generated quiet intro/outro while preserving first playback',async()=>{const {a,media}=playback();await a.switch('music','public');assert.equal(media[0].currentTime,0);media[0].currentTime=112;a.checkLoop('music',a.channels.music);await new Promise(resolve=>setImmediate(resolve));assert.equal(media.length,2);assert.equal(media[1].currentTime,11);assert.equal(a.channels.music.audio,media[1]);assert.equal(a.retiring.size,1);});
+test('media errors are retryable, pending stalls expire, mute cancels stale recovery',async()=>{const {a,advance}=playback();await a.switch('music','room');const first=a.channels.music;first.audio.onerror();assert.equal(a.channels.music,undefined);assert.equal(a.retries.music.at,12000);assert.equal(first.disposed,true);advance(2000);await a.switch('music','room');assert.ok(a.channels.music);assert.equal(a.retries.music,undefined);
+ const current=a.channels.music;advance(13000);a.recover('music');assert.ok(current.disposed);assert.ok(a.retries.music);await a.switch('music',null);assert.equal(a.retries.music,undefined);assert.equal(a.requested.music,null);
+});
+test('suspension is not treated as a stalled download and pending loads can be abandoned safely',async()=>{const {a,advance}=playback();await a.switch('music','room');a.context.state='suspended';advance(20000);a.recover('music');assert.ok(a.channels.music);a.context.state='running';const pending={...a.channels.music,started:0};a.pending.music=pending;advance(21000);a.recover('music');assert.equal(a.pending.music,undefined);assert.ok(pending.disposed);});
+
+test("a paused channel resumes in place instead of waiting for the stall timeout",async()=>{const {a}=playback();await a.switch("music","room");const c=a.channels.music;c.audio.currentTime=42;c.audio.paused=true;a.recover("music");await new Promise(resolve=>setImmediate(resolve));assert.equal(a.channels.music,c);assert.equal(c.audio.paused,false);assert.equal(c.audio.currentTime,42);});
